@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farming Tycoon RTS</title>
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; background: #f0f0f0; }
+        #game-container { display: flex; gap: 20px; margin-top: 20px; }
+        canvas { background: #8bc34a; border: 4px solid #5d4037; cursor: pointer; }
+        #ui { width: 300px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .stat { margin-bottom: 10px; font-size: 1.2em; }
+        .controls button { display: block; width: 100%; padding: 10px; margin-bottom: 5px; cursor: pointer; }
+        .market { margin-top: 20px; border-top: 1px solid #ccc; pt: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Farming Tycoon RTS</h1>
+    <div id="game-container">
+        <canvas id="gameCanvas" width="600" height="600"></canvas>
+        <div id="ui">
+            <div class="stat">Money: $<span id="money">0</span></div>
+            <div class="stat">Tick: <span id="tick">0</span></div>
+            <div class="controls">
+                <h3>Planting</h3>
+                <button onclick="window.selectCrop('WHEAT')">Wheat ($10)</button>
+                <button onclick="window.selectCrop('CORN')">Corn ($25)</button>
+                <button onclick="window.selectCrop('TOMATO')">Tomato ($50)</button>
+                <p>Selected: <span id="selected-crop">None</span></p>
+            </div>
+            <div class="market">
+                <h3>Market Prices</h3>
+                <div id="prices"></div>
+            </div>
+        </div>
+    </div>
+    <script type="module" src="main.js"></script>
+</body>
+</html>
