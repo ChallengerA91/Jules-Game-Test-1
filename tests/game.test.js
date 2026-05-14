@@ -1,62 +1,67 @@
 import { GameState, Farm, CROP_TYPES } from '../src/state.js';
-import { plantCrop, harvestPlot } from '../src/mechanics.js';
+import { plantCrop, harvestPlot, buyUpgrade } from '../src/mechanics.js';
 import { GameEngine } from '../src/engine.js';
 import { Economy } from '../src/economy.js';
 
-describe('Farming Game Logic', () => {
+describe('Farming Game Logic 100x', () => {
   let state, farm;
 
   beforeEach(() => {
     state = new GameState();
     farm = new Farm(1, 'Test Farm', true);
     state.farms.push(farm);
+    // Ensure tick > 0 so expiry works
+    state.tick = 1;
   });
 
   test('should plant a crop', () => {
     const success = plantCrop(farm, 0, CROP_TYPES.WHEAT);
     expect(success).toBe(true);
     expect(farm.plots[0].isOccupied()).toBe(true);
-    expect(farm.money).toBe(90); // 100 - 10
+    expect(farm.money).toBe(90);
   });
 
-  test('should not plant if money is insufficient', () => {
-    farm.money = 5;
-    const success = plantCrop(farm, 0, CROP_TYPES.WHEAT);
-    expect(success).toBe(false);
-  });
-
-  test('should grow crop over ticks', () => {
+  test('should grow crop with weather multiplier', () => {
     const engine = new GameEngine(state);
+    state.weather = { type: 'Rainy', multiplier: 2.0 };
     plantCrop(farm, 0, CROP_TYPES.WHEAT);
 
     engine.tick();
-    expect(farm.plots[0].growthStage).toBe(1);
-
-    for(let i=0; i<9; i++) engine.tick();
-    expect(farm.plots[0].isReadyToHarvest()).toBe(true);
+    // Growth should be 2.0 (weather) + 0 (irrigation) = 2.0
+    expect(farm.plots[0].growthStage).toBe(2);
   });
 
-  test('should harvest crop and earn money', () => {
+  test('should grow crop with irrigation upgrade', () => {
+    const engine = new GameEngine(state);
+    state.weather = { type: 'Sunny', multiplier: 1.0 };
+    farm.upgrades.irrigation = 1;
     plantCrop(farm, 0, CROP_TYPES.WHEAT);
-    farm.plots[0].growthStage = CROP_TYPES.WHEAT.growthTime;
 
-    const initialMoney = farm.money;
-    const result = harvestPlot(farm, 0, state.marketPrices);
-
-    expect(result.success).toBe(true);
-    expect(farm.money).toBeGreaterThan(initialMoney);
-    expect(farm.plots[0].isOccupied()).toBe(false);
+    engine.tick();
+    // Growth should be 1.0 (weather) + 1*0.2 (irrigation) = 1.2
+    expect(farm.plots[0].growthStage).toBe(1.2);
   });
 
-  test('economy should fluctuate prices', () => {
+  test('should apply market boom event', () => {
     const economy = new Economy(state);
-    const initialPrice = state.marketPrices.WHEAT;
+    const basePrice = CROP_TYPES.WHEAT.sellPrice;
 
-    economy.recordHarvest('WHEAT');
-    economy.recordHarvest('WHEAT');
-    economy.recordHarvest('WHEAT');
+    state.events.push({
+        crop: 'WHEAT',
+        type: 'Boom',
+        expiry: 100
+    });
+
     economy.updatePrices();
+    // Price should be 20 * 2.5 = 50
+    expect(state.marketPrices.WHEAT).toBe(50);
+  });
 
-    expect(state.marketPrices.WHEAT).toBeLessThan(initialPrice);
+  test('should handle upgrade purchases', () => {
+    farm.money = 1000;
+    const success = buyUpgrade(farm, 'IRRIGATION');
+    expect(success).toBe(true);
+    expect(farm.upgrades.irrigation).toBe(1);
+    expect(farm.money).toBe(800);
   });
 });

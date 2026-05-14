@@ -12,8 +12,6 @@ export function plantCrop(farm, plotIndex, crop) {
 export function harvestPlot(farm, plotIndex, marketPrices) {
   const plot = farm.plots[plotIndex];
   if (plot.isReadyToHarvest()) {
-    // We expect marketPrices to be an object where keys are crop names or types
-    // To keep it simple, let's assume crop.name is the key in marketPrices
     const price = marketPrices[plot.crop.name.toUpperCase()] || plot.crop.sellPrice;
     farm.money += price;
     const harvestedCropName = plot.crop.name;
@@ -22,4 +20,28 @@ export function harvestPlot(farm, plotIndex, marketPrices) {
     return { success: true, price, cropName: harvestedCropName };
   }
   return { success: false };
+}
+
+export const UPGRADES = {
+    IRRIGATION: { name: 'Irrigation', basePrice: 200, type: 'irrigation' },
+    AUTO_HARVESTER: { name: 'Auto-Harvester', price: 1000, type: 'autoHarvester' }
+};
+
+export function buyUpgrade(farm, upgradeKey) {
+    if (upgradeKey === 'IRRIGATION') {
+        const cost = UPGRADES.IRRIGATION.basePrice * (farm.upgrades.irrigation + 1);
+        if (farm.money >= cost) {
+            farm.money -= cost;
+            farm.upgrades.irrigation++;
+            return true;
+        }
+    } else if (upgradeKey === 'AUTO_HARVESTER') {
+        const cost = UPGRADES.AUTO_HARVESTER.price;
+        if (farm.money >= cost && !farm.upgrades.autoHarvester) {
+            farm.money -= cost;
+            farm.upgrades.autoHarvester = true;
+            return true;
+        }
+    }
+    return false;
 }

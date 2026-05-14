@@ -1,16 +1,19 @@
 export class Crop {
-  constructor(name, growthTime, seedPrice, sellPrice) {
+  constructor(name, growthTime, seedPrice, sellPrice, emoji = '🌱') {
     this.name = name;
     this.growthTime = growthTime; // in ticks
     this.seedPrice = seedPrice;
     this.sellPrice = sellPrice;
+    this.emoji = emoji;
   }
 }
 
 export const CROP_TYPES = {
-  WHEAT: new Crop('Wheat', 10, 10, 20),
-  CORN: new Crop('Corn', 20, 25, 60),
-  TOMATO: new Crop('Tomato', 30, 50, 150)
+  WHEAT: new Crop('Wheat', 10, 10, 20, '🌾'),
+  CORN: new Crop('Corn', 20, 25, 60, '🌽'),
+  TOMATO: new Crop('Tomato', 30, 50, 150, '🍅'),
+  GRAPE: new Crop('Grape', 50, 100, 400, '🍇'),
+  TRUFFLE: new Crop('Truffle', 100, 500, 3000, '🍄')
 };
 
 export class Plot {
@@ -34,7 +37,11 @@ export class Farm {
     this.name = name;
     this.isPlayer = isPlayer;
     this.money = 100;
-    this.plots = Array.from({ length: 9 }, () => new Plot());
+    this.plots = Array.from({ length: 16 }, () => new Plot());
+    this.upgrades = {
+      irrigation: 0, // Reduces growth time
+      autoHarvester: false
+    };
   }
 }
 
@@ -46,5 +53,10 @@ export class GameState {
       this.marketPrices[key] = CROP_TYPES[key].sellPrice;
     });
     this.tick = 0;
+    this.weather = {
+        type: 'Sunny',
+        multiplier: 1.0
+    };
+    this.events = [];
   }
 }
